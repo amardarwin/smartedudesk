@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,70 +11,60 @@
         .grid-timetable { grid-template-columns: 120px repeat(8, 1fr); }
         
         @media print {
-            /* 1. Global Page Setup: Landscape & Fit to Page */
+            /* 1. Global Page Setup */
             @page {
                 size: A4 landscape;
                 margin: 5mm !important;
             }
 
-            /* 2. Fix Adjustment Tab (White Screen Fix) */
-            #root, main, section, div {
-                display: block !important;
+            /* 2. Fit to Page Logic - Sabh ton zaroori */
+            html, body {
+                width: 100% !important;
+                height: auto !important;
+                zoom: 0.85; /* Eh poore content nu A4 te fit karan layi chota karega */
+                background-color: white !important;
+            }
+
+            /* 3. Sab tabs nu visible rakho (Adjustment & Classes Fix) */
+            #root, main, section, .flex, .grid {
+                display: block !important; /* Flexbox print vich kai baar white screen dinda hai */
                 overflow: visible !important;
                 position: static !important;
             }
 
-            /* 3. Hide Unwanted Elements */
-            .no-print, nav, button, aside, .settings-panel, .filter-bar, footer {
+            /* 4. Hide Buttons & UI */
+            .no-print, nav, button, aside, footer, .settings-panel, .filter-bar, [role="tablist"] {
                 display: none !important;
             }
 
-            /* 4. Force Content to Fit Page Width */
-            body {
+            /* 5. Master Table & Classes Grid Fix */
+            table, .grid-timetable, .classes-grid {
                 width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                background-color: white !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            /* 5. Master Table & Adjustment Grid Fit */
-            table, .grid-timetable, .adjustment-grid {
-                width: 100% !important;
-                max-width: 100% !important;
-                table-layout: fixed !important;
                 border-collapse: collapse !important;
                 border: 1px solid black !important;
-                margin-bottom: 10px !important;
+                table-layout: fixed !important;
             }
 
             th, td {
                 border: 1px solid black !important;
                 padding: 4px !important;
-                font-size: 8.5pt !important; /* Shrunk for perfect A4 fit */
-                word-wrap: break-word !important;
+                font-size: 9pt !important;
                 color: black !important;
+                word-wrap: break-word !important;
             }
 
-            /* 6. Teacher Slips: Clean Page Breaks */
-            .teacher-slip-card, [data-print="slip"] {
+            /* 6. Teacher Slips & Class Slips */
+            .teacher-slip-card, .class-card {
                 page-break-after: always !important;
                 break-after: page !important;
                 page-break-inside: avoid !important;
                 border: 2px solid black !important;
-                margin-top: 10px !important;
-                padding: 15px !important;
+                margin-top: 15px !important;
+                padding: 10px !important;
+                display: block !important;
             }
 
-            /* 7. Teachers List Design */
-            .staff-card {
-                break-inside: avoid !important;
-                border: 1px solid #ddd !important;
-                margin-bottom: 10px !important;
-            }
-
-            /* Colors & Clarity */
+            /* Preserve Colors for Branding */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -97,7 +86,6 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-gray-50 text-gray-900">
     <div id="root"></div>
