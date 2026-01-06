@@ -5,7 +5,6 @@ import { findSmartSubstitute, calculateConsecutiveStreak, isTeacherBusy } from '
 import { DAYS, PERIODS, PERIOD_TIMINGS } from '../constants';
 import { UserMinus, CheckCircle2, AlertCircle, FileText, Printer, ShieldCheck, MousePointer2, Plus, ListChecks, UserCog, UserCheck, FileDown, GraduationCap, Trash2, Lock } from 'lucide-react';
 
-// Utility to handle naming rule: If rank is in name, hide secondary title
 const getDisplayDesignation = (teacher: Teacher) => {
   const rankKeywords = ['HM', 'Principal', 'Head Master', 'Head Mistress'];
   const nameUpper = teacher.name.toUpperCase();
@@ -39,15 +38,12 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({
   const [selectedDay, setSelectedDay] = useState<Day>(Day.MON);
   const [showManual, setShowManual] = useState(false);
   
-  // Manual form state
   const [manualPeriod, setManualPeriod] = useState<number>(1);
   const [manualSubstituteId, setManualSubstituteId] = useState('');
   const [manualClassId, setManualClassId] = useState<string>('');
 
   const availableClasses = ['6th', '7th', '8th', '9th', '10th', 'Special Duty'];
 
-  // Update manualClassId automatically ONLY when absentTeacherId or period changes, 
-  // but let the user change it afterwards.
   useEffect(() => {
     if (absentTeacherId && manualPeriod) {
       const entry = timetable[selectedDay]?.[manualPeriod]?.[absentTeacherId];
@@ -130,7 +126,6 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({
 
     const entry = timetable[selectedDay]?.[manualPeriod]?.[absentTeacherId];
     
-    // Check if a substitution ALREADY exists for this specific combination
     const existingIndex = substitutions.findIndex(s => 
       s.absentTeacherId === absentTeacherId && 
       s.period === manualPeriod && 
@@ -168,7 +163,7 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({
   const getWorkloadDots = (teacherId: string, day: Day, period: number) => {
     const streak = calculateConsecutiveStreak(teacherId, day, period, timetable, substitutions);
     return (
-      <div className="flex gap-1 mt-1">
+      <div className="flex gap-1 mt-1 no-print">
         {[1, 2, 3].map(i => (
           <div 
             key={i} 
@@ -194,8 +189,8 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({
   }, {} as Record<string, {name: string, count: number, classes: string[]}>);
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="space-y-6 print:space-y-0 print:block">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:block">
         <div className="lg:col-span-1 space-y-4 no-print">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 relative">
             {!isInchargeMode && (
@@ -344,9 +339,9 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({
           </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 no-print min-h-[400px]">
-            <div className="flex justify-between items-center mb-6">
+        <div className="lg:col-span-2 space-y-6 print:block">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 min-h-[400px] print:p-0 print:border-none print:shadow-none">
+            <div className="flex justify-between items-center mb-6 no-print">
               <h3 className="text-lg font-black flex items-center gap-2">
                 <CheckCircle2 className="text-green-500" size={20} />
                 Generated Adjustment Slips
@@ -361,9 +356,9 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({
               </div>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-4 print:space-y-2">
               {substitutions.filter(s => s.day === selectedDay).length === 0 ? (
-                <div className="text-center py-24 border-2 border-dashed rounded-2xl border-gray-100">
+                <div className="text-center py-24 border-2 border-dashed rounded-2xl border-gray-100 no-print">
                   <div className="w-16 h-16 bg-gray-50 text-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                     <FileText size={32} />
                   </div>
@@ -376,50 +371,54 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({
                   .sort((a, b) => a.period - b.period)
                   .map(sub => {
                   const absentT = teachers.find(t => t.id === sub.absentTeacherId);
+                  const subT = teachers.find(t => t.id === sub.substituteTeacherId);
                   
                   return (
-                    <div key={sub.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border-2 rounded-2xl bg-white transition-all hover:shadow-lg ${sub.isOverride ? 'border-indigo-100 bg-indigo-50/20' : 'border-gray-100'}`}>
-                      <div className="flex gap-5 items-center">
-                        <div className={`w-14 h-14 rounded-2xl shadow-inner border-2 flex items-center justify-center font-black text-xl shrink-0 ${sub.isOverride ? 'bg-indigo-600 text-white border-indigo-700' : 'bg-gray-50 text-indigo-600 border-indigo-50'}`}>
+                    <div key={sub.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border-2 rounded-2xl bg-white transition-all hover:shadow-lg print:p-3 print:rounded-none print:border print:mb-2 ${sub.isOverride ? 'border-indigo-100 bg-indigo-50/20' : 'border-gray-100'}`}>
+                      <div className="flex gap-5 items-center print:gap-3">
+                        <div className={`w-14 h-14 rounded-2xl shadow-inner border-2 flex items-center justify-center font-black text-xl shrink-0 print:w-10 print:h-10 print:text-[14px] print:rounded-none ${sub.isOverride ? 'bg-indigo-600 text-white border-indigo-700 print:bg-gray-200 print:text-black print:border-black' : 'bg-gray-50 text-indigo-600 border-indigo-50 print:bg-white print:text-black print:border-black'}`}>
                           {sub.period}
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-black text-lg text-gray-900 leading-none">{sub.classId}</span>
-                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{sub.originalSubject}</span>
+                            <span className="font-black text-lg text-gray-900 leading-none print:text-[13px]">{sub.classId}</span>
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest print:text-[9px] print:text-black">{sub.originalSubject}</span>
                           </div>
-                          <div className="text-xs flex flex-wrap gap-2 items-center font-bold">
-                            <span className="line-through text-red-400 opacity-60 italic">{absentT?.name}</span>
-                            <span className="text-gray-300">→</span>
-                            <div className="relative group/sub">
-                                <select 
-                                  disabled={!isInchargeMode}
-                                  value={sub.substituteTeacherId}
-                                  onChange={(e) => onUpdateSubstitution?.(sub.id, { 
-                                    substituteTeacherId: e.target.value,
-                                    reason: 'Manual Choice' 
-                                  })}
-                                  className={`appearance-none bg-indigo-50 text-indigo-700 font-black px-2 py-1 rounded-md pr-8 ${isInchargeMode ? 'hover:bg-indigo-100 cursor-pointer' : 'cursor-default'} outline-none transition-all border border-indigo-100 disabled:opacity-80`}
-                                >
-                                  {teachers.map(t => {
-                                    const desig = getDisplayDesignation(t);
-                                    return (
-                                      <option key={t.id} value={t.id} disabled={t.id === sub.absentTeacherId}>
-                                        {t.name}{desig ? ` (${desig})` : ''}
-                                      </option>
-                                    );
-                                  })}
-                                </select>
-                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-400">
+                          <div className="text-xs flex flex-wrap gap-2 items-center font-bold print:text-[10px]">
+                            <span className="line-through text-red-400 opacity-60 italic print:text-gray-400">{absentT?.name}</span>
+                            <span className="text-gray-300 print:text-black">→</span>
+                            <div className="relative group/sub print:font-black">
+                                <span className="no-print">
+                                  <select 
+                                    disabled={!isInchargeMode}
+                                    value={sub.substituteTeacherId}
+                                    onChange={(e) => onUpdateSubstitution?.(sub.id, { 
+                                      substituteTeacherId: e.target.value,
+                                      reason: 'Manual Choice' 
+                                    })}
+                                    className={`appearance-none bg-indigo-50 text-indigo-700 font-black px-2 py-1 rounded-md pr-8 ${isInchargeMode ? 'hover:bg-indigo-100 cursor-pointer' : 'cursor-default'} outline-none transition-all border border-indigo-100 disabled:opacity-80`}
+                                  >
+                                    {teachers.map(t => {
+                                      const desig = getDisplayDesignation(t);
+                                      return (
+                                        <option key={t.id} value={t.id} disabled={t.id === sub.absentTeacherId}>
+                                          {t.name}{desig ? ` (${desig})` : ''}
+                                        </option>
+                                      );
+                                    })}
+                                  </select>
+                                </span>
+                                <span className="hidden print:inline">{subT?.name}</span>
+                                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-400 no-print">
                                   {isInchargeMode ? <UserCog size={12} /> : <Lock size={12} />}
                                 </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-2 mt-4 sm:mt-0">
+                      <div className="flex flex-col items-end gap-2 mt-4 sm:mt-0 print:mt-0 print:flex-row print:items-center">
                         {isInchargeMode && (
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 no-print">
                             <button 
                               onClick={() => onRemoveSubstitution?.(sub.id)}
                               className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
@@ -429,11 +428,11 @@ const AdjustmentPanel: React.FC<AdjustmentPanelProps> = ({
                           </div>
                         )}
                         {sub.isOverride && (
-                          <span className="bg-indigo-600 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase flex items-center gap-1 shadow-sm">
-                            <MousePointer2 size={10} /> Manual Adjustment
+                          <span className="bg-indigo-600 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase flex items-center gap-1 shadow-sm print:bg-white print:text-black print:border print:border-black">
+                            <MousePointer2 size={10} className="print:hidden" /> Manual Adjustment
                           </span>
                         )}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 no-print">
                            <div className="text-right">
                               <div className="text-[9px] font-black text-gray-400 uppercase leading-none">Status</div>
                               {getWorkloadDots(sub.substituteTeacherId, selectedDay, sub.period)}
