@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Teacher, MasterTimetable, Day, ValidationIssue, Subject } from '../types';
 import { DAYS, PERIODS } from '../constants';
 import { calculateConsecutiveStreak } from '../services/timetableLogic';
-import { AlertTriangle, X, UserCog, Lock, Flame, Trash2, RotateCcw, UserMinus } from 'lucide-react';
+import { AlertTriangle, X, UserCog, Lock, Flame, Trash2, RotateCcw, UserMinus, AlertCircle } from 'lucide-react';
 
 interface MasterTableViewProps {
   teachers: Teacher[];
@@ -65,7 +65,7 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
     if (streak === 0) return null;
     const color = streak >= 3 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : streak === 2 ? 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]';
     return (
-      <div className="flex gap-1 mt-1 justify-center">
+      <div className="flex gap-1 mt-1 justify-center no-print">
         {Array.from({ length: Math.min(streak, 3) }).map((_, i) => (
           <div key={i} className={`w-1.5 h-1.5 rounded-full ${color}`} />
         ))}
@@ -154,14 +154,14 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
         </div>
       </div>
 
-      <div className="overflow-x-auto bg-white rounded-lg shadow-2xl border-4 border-black">
+      <div className="overflow-x-auto bg-white rounded-lg shadow-2xl border-4 border-black print:border-black print:border-2">
         <table className="w-full text-xs border-collapse">
           <thead>
-            <tr className="bg-black text-white font-black uppercase text-center border-b-4 border-black">
-              <th className="p-4 border-r border-black text-left sticky left-0 bg-black z-30 w-56 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Teacher Directory</th>
-              <th className="p-4 border-r border-black w-24">Day</th>
+            <tr className="bg-black text-white font-black uppercase text-center border-b-4 border-black print:bg-gray-100 print:text-black print:border-b-2">
+              <th className="p-4 border-r border-black text-left sticky left-0 bg-black z-30 w-56 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] print:p-2 print:bg-gray-100 print:w-40">Teacher Directory</th>
+              <th className="p-4 border-r border-black w-24 print:p-2 print:w-16">Day</th>
               {PERIODS.map(p => (
-                <th key={p} className="p-4 border-r border-black min-w-[110px]">P{p}</th>
+                <th key={p} className="p-4 border-r border-black min-w-[110px] print:p-2 print:min-w-0">P{p}</th>
               ))}
             </tr>
           </thead>
@@ -173,38 +173,52 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
                 <React.Fragment key={teacher.id}>
                   {DAYS.map((day, dIdx) => {
                     const maxStreak = getMaxStreakForDay(teacher.id, day);
+                    const isOverloaded = maxStreak > 3;
+
                     return (
-                      <tr key={`${teacher.id}-${day}`} className={`border-b border-black hover:bg-gray-50 transition-colors ${dIdx === DAYS.length - 1 ? 'border-b-4' : ''}`}>
+                      <tr key={`${teacher.id}-${day}`} className={`border-b border-black hover:bg-gray-50 transition-colors ${dIdx === DAYS.length - 1 ? 'border-b-4 print:border-b-2' : 'print:border-b'}`}>
                         {dIdx === 0 && (
                           <td 
                             rowSpan={6} 
-                            className="p-4 border-r border-black font-medium sticky left-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] group/teacher"
+                            className="p-4 border-r border-black font-medium sticky left-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] group/teacher print:p-2 print:bg-white"
                           >
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1 flex justify-between">
-                                Staff #{idx + 1}
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1 flex justify-between items-center print:text-black">
+                                <span>Staff #{idx + 1}</span>
                                 {isInchargeMode && (
                                   <button 
                                     onClick={() => onClearTeacherSchedule?.(teacher.id)}
                                     title="Reset Teacher Schedule"
-                                    className="opacity-0 group-hover/teacher:opacity-100 text-red-400 hover:text-red-600 transition-opacity"
+                                    className="opacity-0 group-hover/teacher:opacity-100 text-red-400 hover:text-red-600 transition-opacity no-print"
                                   >
                                     <RotateCcw size={10} />
                                   </button>
                                 )}
                               </span>
-                              <div className="font-black text-gray-900 text-sm">{teacher.name}</div>
+                              <div className="font-black text-gray-900 text-sm flex items-center gap-2 print:text-[11px]">
+                                {teacher.name}
+                                {teachers.some(t => t.id === teacher.id && DAYS.some(d => getMaxStreakForDay(t.id, d) > 3)) && (
+                                  <span title="Schedule Warning: 3+ consecutive periods detected in weekly plan">
+                                    <AlertCircle size={14} className="text-red-500 animate-pulse print:hidden" />
+                                  </span>
+                                )}
+                              </div>
                               {desigDisplay && (
-                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{desigDisplay}</div>
+                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter print:text-[9px] print:text-black">{desigDisplay}</div>
                               )}
-                              <div className="mt-2 text-[9px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md inline-block">Limit: {teacher.weeklyLimit}P</div>
+                              <div className="mt-1 text-[9px] font-black bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md inline-block w-fit print:hidden">Limit: {teacher.weeklyLimit}P</div>
                             </div>
                           </td>
                         )}
-                        <td className="p-3 border-r border-black text-center bg-gray-50">
-                          <div className="flex flex-col items-center">
-                            <span className="font-black text-gray-900 uppercase">{day}</span>
+                        <td className="p-3 border-r border-black text-center bg-gray-50 print:p-1 print:bg-white">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={`font-black uppercase print:text-[10px] ${isOverloaded ? 'text-red-600' : 'text-gray-900'}`}>{day}</span>
                             {getLoadDots(maxStreak)}
+                            {isOverloaded && (
+                              <span title="Teacher exceeds 3 consecutive periods today!">
+                                <Flame size={12} className="text-red-500 animate-bounce mt-1 print:hidden" />
+                              </span>
+                            )}
                           </div>
                         </td>
                         {PERIODS.map(period => {
@@ -221,12 +235,13 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
                             <td 
                               key={period} 
                               onClick={() => isInchargeMode && !isEditing && setEditingCell({ day, period, teacherId: teacher.id })}
-                              className={`p-1 border-r border-black min-w-[110px] h-16 transition-all relative text-center
+                              className={`p-1 border-r border-black min-w-[110px] h-16 transition-all relative text-center print:h-auto print:min-w-0 print:p-1
                                 ${entry ? 'bg-white' : 'bg-gray-50/30'}
                                 ${hasError ? 'bg-red-50' : ''}
                                 ${isEditing && isInchargeMode ? 'ring-2 ring-indigo-500 z-40 bg-white shadow-xl' : ''}
                                 ${isDimmed ? 'opacity-20 grayscale' : 'opacity-100'}
                                 ${isInchargeMode ? 'cursor-pointer' : 'cursor-default'}
+                                ${showsWarning && !isEditing ? 'hover:bg-red-50' : ''}
                               `}
                             >
                               {isEditing && isInchargeMode ? (
@@ -260,19 +275,26 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
                                   </select>
                                 </div>
                               ) : (
-                                <div className="flex flex-col items-center justify-center h-full">
+                                <div className="flex flex-col items-center justify-center h-full group/cell">
                                   {entry ? (
                                     <>
-                                      <div className={`font-black text-base leading-none ${!isDimmed && focusClass !== 'ALL' ? 'text-indigo-600 scale-110' : 'text-gray-900'}`}>
+                                      <div className={`font-black text-base leading-none print:text-[11px] ${!isDimmed && focusClass !== 'ALL' ? 'text-indigo-600 scale-110' : 'text-gray-900'}`}>
                                         {entry.classId}
                                       </div>
-                                      <div className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mt-1">{entry.subject}</div>
+                                      <div className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mt-1 print:text-[8px] print:text-black">{entry.subject}</div>
                                     </>
                                   ) : (
-                                    <span className="text-gray-200 font-black">-</span>
+                                    <>
+                                      <span className="text-gray-200 font-black group-hover/cell:text-gray-300 print:text-gray-200">-</span>
+                                      {showsWarning && (
+                                        <div className="absolute top-1 left-1 opacity-40 group-hover/cell:opacity-100 transition-opacity no-print">
+                                          <Flame size={10} className="text-orange-400" />
+                                        </div>
+                                      )}
+                                    </>
                                   )}
                                   {hasError && (
-                                    <div className="absolute top-1 right-1">
+                                    <div className="absolute top-1 right-1 no-print">
                                       <AlertTriangle size={12} className="text-red-500" />
                                     </div>
                                   )}
