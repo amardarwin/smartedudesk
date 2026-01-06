@@ -12,31 +12,75 @@
         .grid-timetable { grid-template-columns: 120px repeat(8, 1fr); }
         
         @media print {
-          @page {
-            size: A4 landscape;
-            margin: 5mm;
-          }
-          
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          .page-break { page-break-after: always; }
-          
-          body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          main { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
-          
-          table { width: 100% !important; border-collapse: collapse !important; border: 2px solid black !important; table-layout: fixed; }
-          th, td { border: 1px solid black !important; color: black !important; word-wrap: break-word; overflow: hidden; }
-          
-          /* Preserve some semantic backgrounds for PDF readability */
-          .bg-gray-100 { background-color: #f3f4f6 !important; }
-          .bg-indigo-600 { background-color: #4f46e5 !important; color: white !important; }
-          .bg-red-50 { background-color: #fef2f2 !important; border: 1px solid #ef4444 !important; }
-          
-          .shadow-sm, .shadow-lg, .shadow-xl { box-shadow: none !important; }
-          .rounded-xl, .rounded-2xl { border-radius: 0 !important; }
-          
-          /* Force colors in PDF */
-          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            /* 1. Global Page Setup: Landscape & Fit to Page */
+            @page {
+                size: A4 landscape;
+                margin: 5mm !important;
+            }
+
+            /* 2. Fix Adjustment Tab (White Screen Fix) */
+            #root, main, section, div {
+                display: block !important;
+                overflow: visible !important;
+                position: static !important;
+            }
+
+            /* 3. Hide Unwanted Elements */
+            .no-print, nav, button, aside, .settings-panel, .filter-bar, footer {
+                display: none !important;
+            }
+
+            /* 4. Force Content to Fit Page Width */
+            body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background-color: white !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* 5. Master Table & Adjustment Grid Fit */
+            table, .grid-timetable, .adjustment-grid {
+                width: 100% !important;
+                max-width: 100% !important;
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+                border: 1px solid black !important;
+                margin-bottom: 10px !important;
+            }
+
+            th, td {
+                border: 1px solid black !important;
+                padding: 4px !important;
+                font-size: 8.5pt !important; /* Shrunk for perfect A4 fit */
+                word-wrap: break-word !important;
+                color: black !important;
+            }
+
+            /* 6. Teacher Slips: Clean Page Breaks */
+            .teacher-slip-card, [data-print="slip"] {
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: avoid !important;
+                border: 2px solid black !important;
+                margin-top: 10px !important;
+                padding: 15px !important;
+            }
+
+            /* 7. Teachers List Design */
+            .staff-card {
+                break-inside: avoid !important;
+                border: 1px solid #ddd !important;
+                margin-bottom: 10px !important;
+            }
+
+            /* Colors & Clarity */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                box-shadow: none !important;
+            }
         }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
