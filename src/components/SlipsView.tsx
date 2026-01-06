@@ -11,7 +11,6 @@ interface SlipsViewProps {
 }
 
 const SlipsView: React.FC<SlipsViewProps> = ({ teachers, timetable, schoolSettings }) => {
-  // Utility to handle naming rule: If rank keywords are in name, hide designations like Master/HM/Principal
   const getDisplayDesignation = (teacher: Teacher) => {
     const rankKeywords = ['HM', 'Principal', 'Head Master', 'Head Mistress'];
     const nameUpper = teacher.name.toUpperCase();
@@ -51,57 +50,57 @@ const SlipsView: React.FC<SlipsViewProps> = ({ teachers, timetable, schoolSettin
       </div>
 
       {/* PRINT CONTENT */}
-      <div className="space-y-16 print:space-y-0 print:block">
+      <div className="space-y-16 print:space-y-8 print:block">
         {teachers.map(teacher => {
           const desig = getDisplayDesignation(teacher);
           return (
-            <div key={teacher.id} className="bg-white p-10 border-4 border-black print:p-8 print:border-4 print:mb-0 print:page-break relative overflow-hidden print:h-[297mm]">
+            <div key={teacher.id} className="bg-white p-10 border-4 border-black print:p-4 print:border-2 print:mb-8 print:page-break relative overflow-hidden">
               <div className="absolute top-4 right-4 text-[10px] font-black uppercase text-gray-400 no-print">Teacher ID: {teacher.id}</div>
               
-              <div className="text-center border-b-4 border-black pb-6 mb-8">
-                <h2 className="text-3xl font-black uppercase tracking-tighter">{schoolSettings?.name || 'GHS Deon Khera'}</h2>
+              <div className="text-center border-b-4 border-black pb-6 mb-8 print:pb-2 print:mb-4 print:border-b-2">
+                <h2 className="text-3xl font-black uppercase tracking-tighter print:text-[18px]">{schoolSettings?.name || 'GHS Deon Khera'}</h2>
                 {schoolSettings?.address && (
-                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-600 mt-1">{schoolSettings.address}</div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-gray-600 mt-1 print:text-[8px]">{schoolSettings.address}</div>
                 )}
-                <div className="text-lg font-bold bg-black text-white inline-block px-6 py-1 mt-4">Individual Weekly Schedule</div>
+                <div className="text-lg font-bold bg-black text-white inline-block px-6 py-1 mt-4 print:text-[11px] print:mt-1 print:px-3">Individual Weekly Schedule</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-8 mb-10">
-                <div className="space-y-2">
-                  <div className="text-xs font-black text-gray-400 uppercase tracking-widest">Name of Faculty</div>
-                  <div className="text-2xl font-black border-b-2 border-gray-200 pb-1">{teacher.name}</div>
+              <div className="grid grid-cols-2 gap-8 mb-10 print:gap-2 print:mb-4">
+                <div className="space-y-2 print:space-y-0">
+                  <div className="text-xs font-black text-gray-400 uppercase tracking-widest print:text-[8px]">Name of Faculty</div>
+                  <div className="text-2xl font-black border-b-2 border-gray-200 pb-1 print:text-[14px] print:border-b">{teacher.name}</div>
                 </div>
-                <div className="space-y-2 text-right">
-                  <div className="text-xs font-black text-gray-400 uppercase tracking-widest">Designation</div>
-                  <div className="text-xl font-bold border-b-2 border-gray-200 pb-1">{desig || 'Faculty'}</div>
+                <div className="space-y-2 text-right print:space-y-0">
+                  <div className="text-xs font-black text-gray-400 uppercase tracking-widest print:text-[8px]">Designation</div>
+                  <div className="text-xl font-bold border-b-2 border-gray-200 pb-1 print:text-[12px] print:border-b">{desig || 'Faculty'}</div>
                 </div>
               </div>
 
-              <div className="overflow-hidden border-2 border-black">
+              <div className="overflow-hidden border-2 border-black print:border">
                 <table className="w-full text-center text-sm border-collapse">
-                  <thead className="bg-black text-white font-black text-xs uppercase">
+                  <thead className="bg-black text-white font-black text-xs uppercase print:bg-white print:text-black">
                     <tr>
-                      <th className="p-3 border border-black">Day</th>
+                      <th className="p-3 border border-black print:p-1 print:text-[9px]">Day</th>
                       {PERIODS.map(p => (
-                        <th key={p} className="p-3 border border-black">P{p}</th>
+                        <th key={p} className="p-3 border border-black print:p-1 print:text-[9px]">P{p}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="font-bold">
                     {DAYS.map(day => (
-                      <tr key={day} className="border-b-2 border-black last:border-0">
-                        <td className="p-3 border-r-2 border-black bg-gray-50 font-black">{day}</td>
+                      <tr key={day} className="border-b-2 border-black last:border-0 print:border-b">
+                        <td className="p-3 border-r-2 border-black bg-gray-50 font-black print:p-1 print:text-[10px] print:bg-white print:border-r">{day}</td>
                         {PERIODS.map(p => {
                           const entry = timetable[day]?.[p]?.[teacher.id];
                           return (
-                            <td key={p} className="p-3 border-r-2 border-black last:border-0 h-16">
+                            <td key={p} className="p-3 border-r-2 border-black last:border-0 h-16 print:p-1 print:h-auto print:border-r">
                               {entry ? (
                                 <div>
-                                  <div className="font-black text-lg">{entry.classId}</div>
-                                  <div className="text-[10px] uppercase font-bold text-gray-500">{entry.subject}</div>
+                                  <div className="font-black text-lg print:text-[11px]">{entry.classId}</div>
+                                  <div className="text-[10px] uppercase font-bold text-gray-500 print:text-[8px] print:text-black">{entry.subject}</div>
                                 </div>
                               ) : (
-                                <span className="text-gray-300 font-black">-</span>
+                                <span className="text-gray-300 font-black print:text-gray-100">-</span>
                               )}
                             </td>
                           );
@@ -112,15 +111,15 @@ const SlipsView: React.FC<SlipsViewProps> = ({ teachers, timetable, schoolSettin
                 </table>
               </div>
 
-              <div className="mt-16 flex justify-between items-end">
+              <div className="mt-16 flex justify-between items-end print:mt-6">
                 <div className="space-y-1">
-                  <div className="text-[10px] font-black uppercase text-gray-400">Generation Meta</div>
-                  <div className="text-xs font-bold">System Date: {new Date().toLocaleDateString()}</div>
-                  <div className="text-xs font-bold">Total Weekly Load: {teacher.weeklyLimit} / 48 Periods</div>
+                  <div className="text-[10px] font-black uppercase text-gray-400 print:text-[7px]">Generation Meta</div>
+                  <div className="text-xs font-bold print:text-[8px]">Date: {new Date().toLocaleDateString()}</div>
+                  <div className="text-xs font-bold print:text-[8px]">Load: {teacher.weeklyLimit}P</div>
                 </div>
-                <div className="text-center space-y-2">
-                  <div className="w-48 h-px bg-black mx-auto" />
-                  <div className="text-[10px] font-black uppercase tracking-widest">Principal / HM Signature</div>
+                <div className="text-center space-y-2 print:space-y-1">
+                  <div className="w-48 h-px bg-black mx-auto print:w-32" />
+                  <div className="text-[10px] font-black uppercase tracking-widest print:text-[7px]">Principal / HM Signature</div>
                 </div>
               </div>
             </div>
