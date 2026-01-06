@@ -21,21 +21,45 @@
           .print-only { display: block !important; }
           .page-break { page-break-after: always; }
           
-          body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
           main { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
           
-          table { width: 100% !important; border-collapse: collapse !important; border: 2px solid black !important; table-layout: fixed; }
-          th, td { border: 1px solid black !important; color: black !important; word-wrap: break-word; overflow: hidden; }
+          /* Force all containers to be full width and visible */
+          .lg\:col-span-2, .lg\:col-span-1, .grid { 
+            display: block !important; 
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          table { 
+            width: 100% !important; 
+            border-collapse: collapse !important; 
+            border: 1.5px solid black !important; 
+            table-layout: fixed; 
+            font-size: 10px !important;
+          }
           
-          /* Preserve some semantic backgrounds for PDF readability */
-          .bg-gray-100 { background-color: #f3f4f6 !important; }
-          .bg-indigo-600 { background-color: #4f46e5 !important; color: white !important; }
-          .bg-red-50 { background-color: #fef2f2 !important; border: 1px solid #ef4444 !important; }
+          th, td { 
+            border: 1px solid black !important; 
+            color: black !important; 
+            word-wrap: break-word; 
+            overflow: hidden; 
+            padding: 2px !important;
+            height: auto !important;
+            min-height: 0 !important;
+          }
+
+          /* Ensure table headers are repeated if table spans pages */
+          thead { display: table-header-group; }
           
-          .shadow-sm, .shadow-lg, .shadow-xl { box-shadow: none !important; }
-          .rounded-xl, .rounded-2xl { border-radius: 0 !important; }
+          .shadow-sm, .shadow-lg, .shadow-xl, .shadow-2xl { box-shadow: none !important; }
+          .rounded-xl, .rounded-2xl, .rounded-[2.5rem] { border-radius: 0 !important; border-width: 1px !important; }
           
-          /* Force colors in PDF */
+          .bg-indigo-600 { background-color: #f3f4f6 !important; color: black !important; border: 1px solid black !important; }
+          .text-white { color: black !important; }
+          
+          /* Force text to be visible */
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
         
@@ -57,6 +81,6 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
     <div id="root"></div>
-<script type="module" src="/src/index.tsx"></script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>
