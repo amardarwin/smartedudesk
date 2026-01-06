@@ -32,22 +32,22 @@ const ClassesView: React.FC<ClassesViewProps> = ({ requirements, teachers, timet
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-12">
+      <div className="grid grid-cols-1 gap-12 print:gap-4">
         {requirements.map(req => {
           const incharge = teachers.find(t => t.classInchargeOf === req.classId);
           const totalPeriods = req.requirements.reduce((acc, r) => acc + r.periodsPerWeek, 0);
           const isEditing = editingClass === req.classId && isInchargeMode;
 
           return (
-            <div key={req.classId} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-xl transition-all print:border-4 print:border-black print:rounded-none print:shadow-none print:mb-10 print:page-break">
+            <div key={req.classId} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-xl transition-all print:border-2 print:border-black print:rounded-none print:shadow-none print:mb-4 print:page-break">
               {/* Header */}
-              <div className="p-6 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white flex justify-between items-center print:from-white print:to-white print:text-black print:border-b-4 print:border-black">
+              <div className="p-6 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white flex justify-between items-center print:p-2 print:from-white print:to-white print:text-black print:border-b-2 print:border-black">
                 <div className="flex items-center gap-4">
-                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md print:bg-black print:text-white">
+                  <div className="bg-white/20 p-3 rounded-xl backdrop-blur-md print:hidden">
                     <GraduationCap size={24} />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-black tracking-tight flex items-center gap-3">
+                    <h3 className="text-2xl font-black tracking-tight flex items-center gap-3 print:text-[14px]">
                         Class {req.classId}
                         {isInchargeMode ? (
                           <button 
@@ -62,25 +62,25 @@ const ClassesView: React.FC<ClassesViewProps> = ({ requirements, teachers, timet
                           </span>
                         )}
                     </h3>
-                    <div className="text-xs font-bold opacity-80 uppercase tracking-widest">{schoolSettings?.name}</div>
+                    <div className="text-xs font-bold opacity-80 uppercase tracking-widest print:text-[8px]">{schoolSettings?.name}</div>
                   </div>
                 </div>
                 <div className="text-right flex items-center gap-6">
                   {incharge && (
                     <div className="text-right">
-                        <div className="text-[10px] font-black opacity-70 uppercase tracking-widest">Class In-charge</div>
-                        <div className="font-black text-sm">{incharge.name}</div>
+                        <div className="text-[10px] font-black opacity-70 uppercase tracking-widest print:text-[8px]">In-charge</div>
+                        <div className="font-black text-sm print:text-[10px]">{incharge.name}</div>
                     </div>
                   )}
                   <div className="h-10 w-px bg-white/20 print:bg-black" />
                   <div className="text-right">
-                    <div className="text-2xl font-black">{totalPeriods}</div>
-                    <div className="text-[10px] font-bold opacity-70 uppercase">Weekly Goal</div>
+                    <div className="text-2xl font-black print:text-[14px]">{totalPeriods}</div>
+                    <div className="text-[10px] font-bold opacity-70 uppercase print:text-[8px]">Weekly</div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 space-y-8">
+              <div className="p-6 space-y-8 print:p-2 print:space-y-2">
                 {/* Requirements Editor (Visible when editing and incharge) */}
                 {isEditing && isInchargeMode && (
                     <div className="no-print bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100 animate-in slide-in-from-top-2">
@@ -107,39 +107,39 @@ const ClassesView: React.FC<ClassesViewProps> = ({ requirements, teachers, timet
 
                 {/* Timetable Grid View */}
                 <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border-2 border-black text-center text-xs">
-                        <thead className="bg-gray-100 font-black uppercase text-gray-600 print:text-black">
+                    <table className="w-full border-collapse border-2 border-black text-center text-xs print:border-black print:border">
+                        <thead className="bg-gray-100 font-black uppercase text-gray-600 print:bg-white print:text-black">
                             <tr>
-                                <th className="p-3 border border-black w-24">Day</th>
+                                <th className="p-3 border border-black w-24 print:p-1 print:w-16">Day</th>
                                 {PERIODS.map(p => (
-                                    <th key={p} className="p-3 border border-black">P{p}</th>
+                                    <th key={p} className="p-3 border border-black print:p-1">P{p}</th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="font-bold">
                             {DAYS.map(day => (
                                 <tr key={day}>
-                                    <td className="p-3 border border-black bg-gray-50 font-black">{day}</td>
+                                    <td className="p-3 border border-black bg-gray-50 font-black print:p-1 print:bg-white">{day}</td>
                                     {PERIODS.map(p => {
                                         const teacherEntries = Object.values(timetable[day]?.[p] || {}) as TimetableEntry[];
                                         const classEntry = teacherEntries.find(e => e.classId === req.classId);
                                         const teacher = classEntry ? teachers.find(t => t.id === classEntry.teacherId) : null;
 
                                         return (
-                                            <td key={p} className={`p-2 border border-black h-20 min-w-[100px] transition-all ${!classEntry ? 'bg-red-50' : ''}`}>
+                                            <td key={p} className={`p-2 border border-black h-20 min-w-[100px] transition-all print:h-auto print:min-w-0 print:p-1 ${!classEntry ? 'bg-red-50 print:bg-white' : ''}`}>
                                                 {classEntry ? (
-                                                    <div className="space-y-1">
-                                                        <div className="text-indigo-600 print:text-black font-black text-[11px] leading-tight uppercase">
+                                                    <div className="space-y-1 print:space-y-0">
+                                                        <div className="text-indigo-600 print:text-black font-black text-[11px] leading-tight uppercase print:text-[10px]">
                                                             {classEntry.subject}
                                                         </div>
-                                                        <div className="text-[9px] text-gray-500 print:text-black font-medium italic">
+                                                        <div className="text-[9px] text-gray-500 print:text-black font-medium italic print:text-[8px] print:not-italic">
                                                             {teacher?.name}
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col items-center justify-center text-red-500 space-y-1">
-                                                      <AlertTriangle size={14} />
-                                                      <span className="text-[10px] font-black uppercase">Vacant</span>
+                                                    <div className="flex flex-col items-center justify-center text-red-500 space-y-1 print:text-black print:space-y-0">
+                                                      <AlertTriangle size={14} className="print:hidden" />
+                                                      <span className="text-[10px] font-black uppercase print:text-[9px] print:text-gray-300">Vacant</span>
                                                     </div>
                                                 )}
                                             </td>
