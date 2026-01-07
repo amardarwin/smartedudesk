@@ -1,130 +1,122 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartEduDesk</title>
+    <title>SmartEduDesk | GHS DEON KHERA</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .grid-timetable { grid-template-columns: 120px repeat(8, 1fr); }
-        
-        /* Mock Print Preview Styling */
-        .mock-print-mode {
-          background-color: #374151 !important; /* Darker background for focus */
-          overflow-y: auto !important;
-          height: 100vh;
-        }
-
-        .mock-print-sheet {
-          background-color: white !important;
-          width: 297mm; /* A4 Landscape Width */
-          min-height: 210mm; 
-          margin: 60px auto !important;
-          padding: 10mm !important;
-          box-shadow: 0 0 50px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.2);
-          border: 1px solid #9ca3af;
-          color: black !important;
-          position: relative;
-        }
-
-        /* Visual indicator for paper edges */
-        .mock-print-sheet::before {
-          content: 'A4 LANDSCAPE AREA';
-          position: absolute;
-          top: -25px;
-          left: 0;
-          font-size: 10px;
-          font-weight: 900;
-          color: #9ca3af;
-          letter-spacing: 2px;
-        }
-
-        .mock-print-sheet table {
-          font-size: 10px !important;
-          border-collapse: collapse !important;
-          width: 100% !important;
-          color: black !important;
-          border: 1.5px solid black !important;
-        }
-
-        .mock-print-sheet th, .mock-print-sheet td {
-          border: 1px solid black !important;
-          padding: 2px !important;
-          height: auto !important;
-        }
-
-        .mock-print-sheet .no-print {
-          display: none !important;
-        }
 
         @media print {
-          @page {
-            size: A4 landscape;
-            margin: 5mm;
-          }
-          
-          .no-print { display: none !important; }
-          .print-only { display: block !important; }
-          .page-break { page-break-after: always; }
-          
-          body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
-          main { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
-          
-          .lg\:col-span-2, .lg\:col-span-1, .grid { 
-            display: block !important; 
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
+            /* 1. Page & Layout Reset */
+            @page {
+                size: auto; 
+                margin: 8mm !important;
+            }
+            
+            html, body {
+                width: 100% !important;
+                background: white !important;
+                color: black !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
 
-          table { 
-            width: 100% !important; 
-            border-collapse: collapse !important; 
-            border: 1.5px solid black !important; 
-            table-layout: fixed; 
-            font-size: 10px !important;
-          }
-          
-          th, td { 
-            border: 1px solid black !important; 
-            color: black !important; 
-            word-wrap: break-word; 
-            overflow: hidden; 
-            padding: 2px !important;
-            height: auto !important;
-            min-height: 0 !important;
-          }
+            /* 2. TEACHERS LIST: 4 Teachers per page (2x2 Grid) */
+            /* Targetting the main container of the staff list */
+            .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3, 
+            [class*="teachers-grid"] {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important; /* 2 Columns */
+                gap: 10px !important;
+            }
 
-          thead { display: table-header-group; }
-          
-          .shadow-sm, .shadow-lg, .shadow-xl, .shadow-2xl { box-shadow: none !important; }
-          .rounded-xl, .rounded-2xl, .rounded-[2.5rem] { border-radius: 0 !important; border-width: 1px !important; }
-          
-          .bg-indigo-600 { background-color: #f3f4f6 !important; color: black !important; border: 1px solid black !important; }
-          .text-white { color: black !important; }
-          
-          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            /* Targetting individual teacher cards */
+            .bg-white.rounded-xl.shadow-sm.border, 
+            [class*="teacher-card"] {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                height: 138mm !important; /* Forces 4 cards to fit A4 height */
+                border: 1.5pt solid black !important;
+                margin-bottom: 5px !important;
+                padding: 10px !important;
+            }
+
+            /* 3. CLASSES & SLIPS: One item per page */
+            /* If the container has only 1 column, it's likely the Classes or Slips view */
+            .grid-cols-1 > div, 
+            .teacher-slip-card,
+            [data-print="single-page"] {
+                page-break-after: always !important;
+                break-after: page !important;
+                border: 2px solid black !important;
+                width: 100% !important;
+                margin-bottom: 0 !important;
+            }
+
+            /* 4. TABLE STYLING (Universal) */
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                table-layout: fixed !important;
+            }
+
+            th, td {
+                border: 1.2pt solid black !important;
+                padding: 3px !important;
+                line-height: 1.1 !important;
+                word-wrap: break-word !important;
+            }
+
+            /* 5. DYNAMIC FONT SIZES */
+            /* Default for Master Table & Staff List */
+            th, td { font-size: 10pt !important; }
+
+            /* Bigger Font for Single Page Views (Classes/Slips) */
+            .grid-cols-1 table th, 
+            .grid-cols-1 table td {
+                font-size: 13pt !important;
+                font-weight: 600 !important;
+                padding: 6px !important;
+            }
+
+            /* 6. CLEANUP: Hide Buttons, Nav, Sidebar */
+            nav, button, header, footer, aside, .no-print, .settings-panel, [role="tablist"] {
+                display: none !important;
+            }
+
+            /* 7. WHITE SCREEN FIX */
+            #root, main, section, div {
+                display: block !important;
+                overflow: visible !important;
+                position: static !important;
+            }
+
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
-        
+
+        /* Screen behavior - No changes needed */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3"
-  }
-}
-</script>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "react": "https://esm.sh/react@^19.2.3"
+      }
+    }
+    </script>
 </head>
-<body class="bg-gray-50 text-gray-900 transition-colors duration-300">
+<body class="bg-gray-50 text-gray-900">
     <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
 </body>
 </html>
