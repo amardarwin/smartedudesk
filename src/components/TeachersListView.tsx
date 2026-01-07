@@ -32,7 +32,7 @@ const TeachersListView: React.FC<TeachersListViewProps> = ({ teachers, onAddTeac
     periods: 6 
   });
 
-  const availableSubjects: Subject[] = ['Math', 'Science', 'English', 'SST', 'Punjabi', 'Hindi', 'Computer', 'Phy Edu', 'Agri', 'W.L.', 'Art', 'Physics'];
+  const availableSubjects: Subject[] = ['Math', 'Science', 'English', 'SST', 'Punjabi', 'Hindi', 'Computer', 'Phy Edu', 'Agri', 'W.L.'];
   const availableClasses = ['6th', '7th', '8th', '9th', '10th'];
 
   // Handle Edit Trigger
