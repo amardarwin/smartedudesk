@@ -12,7 +12,7 @@ import { Teacher, MasterTimetable, Substitution, Day, Subject, SchoolSettings, C
 import { generateBaseTimetable } from './services/timetableLogic';
 import { generateSmartTimetable } from './services/geminiService';
 import { validateTimetable } from './services/validationLogic';
-import { Sparkles, RefreshCw, FileSpreadsheet, CheckCircle2, Database, FileDown, Lock, Unlock, Save, UserPlus, Grid3X3, FileText, Printer, Info, CheckCircle } from 'lucide-react';
+import { Sparkles, RefreshCw, FileSpreadsheet, CheckCircle2, Database, FileDown, Lock, Unlock, Save, UserPlus, Grid3X3, FileText, Printer, Info, CheckCircle, Eye, EyeOff, ClipboardCheck, Layout } from 'lucide-react';
 
 const STORAGE_KEY_V2 = 'smartedudesk_v2_storage';
 const STORAGE_KEY_V1 = 'smartedudesk_data_v1';
@@ -22,6 +22,7 @@ export const App: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSaved, setLastSaved] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showMockPrint, setShowMockPrint] = useState(false);
 
   // Core Data States
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -79,6 +80,15 @@ export const App: React.FC = () => {
     setLastSaved(new Date().toLocaleTimeString());
   }, [teachers, requirements, schoolSettings, timetable, substitutions, isInchargeMode, isInitialized]);
 
+  // Handle CSS class for body when in mock print mode
+  useEffect(() => {
+    if (showMockPrint) {
+      document.body.classList.add('mock-print-mode');
+    } else {
+      document.body.classList.remove('mock-print-mode');
+    }
+  }, [showMockPrint]);
+
   // Ensure timetable structure
   useEffect(() => {
     if (isInitialized && !timetable) {
@@ -100,8 +110,6 @@ export const App: React.FC = () => {
 
   const handleResetTimetable = () => {
     if (!isInchargeMode) return;
-    
-    // Create a brand new structured object for the timetable
     const newTimetable: MasterTimetable = {} as MasterTimetable;
     DAYS.forEach(day => {
       newTimetable[day] = {};
@@ -109,9 +117,8 @@ export const App: React.FC = () => {
         newTimetable[day][p] = {};
       });
     });
-    
     setTimetable(newTimetable);
-    setSubstitutions([]); // Also clear substitutions to ensure a full grid reset
+    setSubstitutions([]);
   };
 
   const handleClearClass = (classId: string) => {
@@ -258,7 +265,7 @@ export const App: React.FC = () => {
     }
   };
 
-  if (!isInitialized) return <div className="min-h-screen flex items-center justify-center font-black text-indigo-600">Syncing with Browser...</div>;
+  if (!isInitialized) return <div className="min-h-screen flex items-center justify-center font-black text-indigo-600 uppercase tracking-widest animate-pulse">Establishing Session...</div>;
 
   const renderDashboard = () => (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -279,6 +286,13 @@ export const App: React.FC = () => {
           <p className="text-gray-500 font-medium">Automatic Timetable & Adjustment System</p>
         </div>
         <div className="flex wrap gap-3 no-print items-center">
+          <button 
+            onClick={() => setShowMockPrint(!showMockPrint)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all font-black shadow-sm ${showMockPrint ? 'bg-amber-600 text-white border-amber-700' : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'}`}
+          >
+            {showMockPrint ? <EyeOff size={16} /> : <Eye size={16} />}
+            <span className="text-[10px] font-black uppercase tracking-widest">{showMockPrint ? 'Exit Preview' : 'Preview Print Layout'}</span>
+          </button>
           <button 
             onClick={handleManualSave}
             className="flex items-center gap-2 px-4 py-2 bg-white text-emerald-600 rounded-xl border border-emerald-100 shadow-sm hover:bg-emerald-50 transition-all font-black"
@@ -393,59 +407,168 @@ export const App: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <div className="pt-6 border-t border-gray-50 flex items-center gap-4">
-          <div className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
-             Optimized for A4 Print & PDF Export
-          </div>
-        </div>
       </div>
     </div>
   );
 
   const renderContent = () => {
     const timetableSafe = (timetable || {} as MasterTimetable);
-
-    switch (activeTab) {
-      case 'dashboard': return renderDashboard();
-      case 'master': return (
-        <div className="space-y-8">
-          <div className="flex justify-between items-end">
-            <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">Master Timetable Grid</h1>
-              <p className="text-gray-500 font-medium">Full view of teacher assignments across the week</p>
+    const content = (() => {
+      switch (activeTab) {
+        case 'dashboard': return renderDashboard();
+        case 'master': return (
+          <div className="space-y-8">
+            <div className="flex justify-between items-end no-print">
+              <div>
+                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Master Timetable Grid</h1>
+                <p className="text-gray-500 font-medium">Full view of teacher assignments across the week</p>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => setShowMockPrint(!showMockPrint)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border transition-all font-black shadow-sm ${showMockPrint ? 'bg-amber-600 text-white border-amber-700' : 'bg-white text-gray-600 border-gray-100 hover:bg-gray-50'}`}
+                >
+                  {showMockPrint ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <span className="text-[10px] font-black uppercase tracking-widest">{showMockPrint ? 'Exit Preview' : 'Preview Print'}</span>
+                </button>
+                <button onClick={() => window.print()} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-black text-xs shadow-lg shadow-indigo-100 flex items-center gap-2 hover:bg-indigo-700 transition-all">
+                  <FileDown size={16} /> Print Table
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2 no-print">
-              <button onClick={() => window.print()} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-black text-xs shadow-lg shadow-indigo-100 flex items-center gap-2 hover:bg-indigo-700 transition-all">
-                <FileDown size={16} /> Print Table
-              </button>
+            <MasterTableView 
+              teachers={teachers} 
+              timetable={timetableSafe} 
+              validationIssues={validationIssues} 
+              onUpdateCell={handleUpdateCell} 
+              onClearCell={handleClearCell}
+              onClearClass={handleClearClass}
+              onClearTeacherSchedule={handleClearTeacherSchedule}
+              isInchargeMode={isInchargeMode}
+            />
+          </div>
+        );
+        case 'adjustment': return <AdjustmentPanel teachers={teachers} timetable={timetableSafe} substitutions={substitutions} onAddSubstitution={addSubstitution} onUpdateSubstitution={updateSubstitution} onRemoveSubstitution={removeSubstitution} isInchargeMode={isInchargeMode} />;
+        case 'teachers': return <TeachersListView teachers={teachers} onAddTeacher={handleAddTeacher} onUpdateTeacher={handleUpdateTeacher} isInchargeMode={isInchargeMode} />;
+        case 'classes': return <ClassesView requirements={requirements} teachers={teachers} timetable={timetableSafe} schoolSettings={schoolSettings} onUpdateRequirement={handleUpdateRequirement} isInchargeMode={isInchargeMode} />;
+        case 'slips': return <SlipsView teachers={teachers} timetable={timetableSafe} schoolSettings={schoolSettings} />;
+        case 'settings': return <SettingsView settings={schoolSettings} onUpdate={(u) => setSchoolSettings(prev => ({ ...prev, ...u }))} onFactoryReset={handleFactoryReset} isInchargeMode={isInchargeMode} onToggleInchargeMode={() => setIsInchargeMode(!isInchargeMode)} />;
+        default: return null;
+      }
+    })();
+
+    if (showMockPrint && activeTab !== 'dashboard' && activeTab !== 'settings') {
+      return (
+        <div className="mock-print-sheet">
+          <div className="text-center mb-6 border-b-2 border-black pb-4">
+             <h1 className="text-xl font-black uppercase">{schoolSettings.name}</h1>
+             <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{schoolSettings.address}</p>
+             <p className="text-[12px] font-black mt-2 bg-black text-white px-4 py-1 inline-block uppercase tracking-wider">
+               {activeTab === 'master' ? 'Master Timetable' : activeTab === 'adjustment' ? 'Duty Adjustments' : activeTab === 'classes' ? 'Class Timetable' : 'Faculty Slips'}
+             </p>
+          </div>
+          {content}
+          <div className="mt-10 pt-4 border-t border-black flex justify-between items-end">
+            <div className="text-[8px] font-black uppercase text-gray-400">Generated via SmartEduDesk System</div>
+            <div className="text-center">
+              <div className="w-32 h-px bg-black mb-1 mx-auto"></div>
+              <div className="text-[8px] font-black uppercase">Principal / HM Signature</div>
             </div>
           </div>
-          <MasterTableView 
-            teachers={teachers} 
-            timetable={timetableSafe} 
-            validationIssues={validationIssues} 
-            onUpdateCell={handleUpdateCell} 
-            onClearCell={handleClearCell}
-            onClearClass={handleClearClass}
-            onClearTeacherSchedule={handleClearTeacherSchedule}
-            isInchargeMode={isInchargeMode}
-          />
         </div>
       );
-      case 'adjustment': return <AdjustmentPanel teachers={teachers} timetable={timetableSafe} substitutions={substitutions} onAddSubstitution={addSubstitution} onUpdateSubstitution={updateSubstitution} onRemoveSubstitution={removeSubstitution} isInchargeMode={isInchargeMode} />;
-      case 'teachers': return <TeachersListView teachers={teachers} onAddTeacher={handleAddTeacher} onUpdateTeacher={handleUpdateTeacher} isInchargeMode={isInchargeMode} />;
-      case 'classes': return <ClassesView requirements={requirements} teachers={teachers} timetable={timetableSafe} schoolSettings={schoolSettings} onUpdateRequirement={handleUpdateRequirement} isInchargeMode={isInchargeMode} />;
-      case 'slips': return <SlipsView teachers={teachers} timetable={timetableSafe} schoolSettings={schoolSettings} />;
-      case 'settings': return <SettingsView settings={schoolSettings} onUpdate={(u) => setSchoolSettings(prev => ({ ...prev, ...u }))} onFactoryReset={handleFactoryReset} isInchargeMode={isInchargeMode} onToggleInchargeMode={() => setIsInchargeMode(!isInchargeMode)} />;
-      default: return null;
     }
+
+    return content;
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-gray-900 font-sans antialiased">
-      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="max-w-[1600px] mx-auto px-6 py-10 pb-24">
+    <div className={`min-h-screen bg-[#FDFDFD] text-gray-900 font-sans antialiased ${showMockPrint ? 'overflow-x-auto' : ''}`}>
+      {!showMockPrint && <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />}
+      
+      {showMockPrint && (
+        <div className="fixed top-0 left-0 right-0 z-[200] no-print">
+           {/* Top Control Bar */}
+           <div className="bg-gray-900 text-white p-4 flex justify-between items-center shadow-2xl">
+              <div className="flex items-center gap-4">
+                 <div className="bg-indigo-600 p-2 rounded-lg">
+                    <Printer size={20} />
+                 </div>
+                 <div>
+                    <h3 className="text-sm font-black uppercase tracking-wider">Print Quality Check</h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Verifying {activeTab} layout</p>
+                 </div>
+              </div>
+              
+              <div className="flex gap-3">
+                 <button 
+                  onClick={() => setShowMockPrint(false)}
+                  className="bg-gray-800 text-gray-300 px-6 py-2 rounded-xl font-black text-xs hover:bg-gray-700 transition-all uppercase tracking-widest border border-gray-700"
+                 >
+                   Exit Preview
+                 </button>
+                 <button 
+                  onClick={() => window.print()}
+                  className="bg-indigo-600 text-white px-8 py-2 rounded-xl font-black text-xs shadow-xl flex items-center gap-2 hover:bg-indigo-700 transition-all uppercase tracking-widest"
+                 >
+                   Confirm & Print Now
+                 </button>
+              </div>
+           </div>
+
+           {/* Checklist Sidebar */}
+           <div className="fixed top-24 right-8 w-72 bg-white rounded-3xl shadow-2xl border border-gray-200 p-6 animate-in slide-in-from-right-4">
+              <div className="flex items-center gap-2 mb-6 text-indigo-600 font-black text-xs uppercase tracking-widest border-b pb-4">
+                 <ClipboardCheck size={18} /> Print Calibration
+              </div>
+              
+              <div className="space-y-6">
+                 <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                       <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                          <CheckCircle size={14} />
+                       </div>
+                       <p className="text-[11px] font-black text-gray-700 leading-tight">
+                          ORIENTATION:<br/>
+                          <span className="text-indigo-600">Must be Landscape</span>
+                       </p>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                       <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                          <CheckCircle size={14} />
+                       </div>
+                       <p className="text-[11px] font-black text-gray-700 leading-tight">
+                          BACKGROUND GRAPHICS:<br/>
+                          <span className="text-indigo-600">Toggle "ON" in More Settings</span>
+                       </p>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                       <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                          <CheckCircle size={14} />
+                       </div>
+                       <p className="text-[11px] font-black text-gray-700 leading-tight">
+                          MARGINS:<br/>
+                          <span className="text-indigo-600">Set to "Default" or "None"</span>
+                       </p>
+                    </div>
+                 </div>
+
+                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <h4 className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                       <Layout size={10} /> Active Format
+                    </h4>
+                    <p className="text-[10px] font-bold text-gray-600 leading-relaxed">
+                       Current tab is optimized for <span className="text-black">A4 Paper</span>. If parts are missing, adjust the "Scale" to <span className="text-black">Fit to Width</span>.
+                    </p>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
+
+      <main className={`mx-auto ${showMockPrint ? 'w-full' : 'max-w-[1600px] px-6 py-10 pb-24'}`}>
         {renderContent()}
       </main>
     </div>
