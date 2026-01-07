@@ -11,6 +11,55 @@
         body { font-family: 'Inter', sans-serif; }
         .grid-timetable { grid-template-columns: 120px repeat(8, 1fr); }
         
+        /* Mock Print Preview Styling */
+        .mock-print-mode {
+          background-color: #374151 !important; /* Darker background for focus */
+          overflow-y: auto !important;
+          height: 100vh;
+        }
+
+        .mock-print-sheet {
+          background-color: white !important;
+          width: 297mm; /* A4 Landscape Width */
+          min-height: 210mm; 
+          margin: 60px auto !important;
+          padding: 10mm !important;
+          box-shadow: 0 0 50px rgba(0,0,0,0.4), 0 0 10px rgba(0,0,0,0.2);
+          border: 1px solid #9ca3af;
+          color: black !important;
+          position: relative;
+        }
+
+        /* Visual indicator for paper edges */
+        .mock-print-sheet::before {
+          content: 'A4 LANDSCAPE AREA';
+          position: absolute;
+          top: -25px;
+          left: 0;
+          font-size: 10px;
+          font-weight: 900;
+          color: #9ca3af;
+          letter-spacing: 2px;
+        }
+
+        .mock-print-sheet table {
+          font-size: 10px !important;
+          border-collapse: collapse !important;
+          width: 100% !important;
+          color: black !important;
+          border: 1.5px solid black !important;
+        }
+
+        .mock-print-sheet th, .mock-print-sheet td {
+          border: 1px solid black !important;
+          padding: 2px !important;
+          height: auto !important;
+        }
+
+        .mock-print-sheet .no-print {
+          display: none !important;
+        }
+
         @media print {
           @page {
             size: A4 landscape;
@@ -24,7 +73,6 @@
           body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
           main { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
           
-          /* Force all containers to be full width and visible */
           .lg\:col-span-2, .lg\:col-span-1, .grid { 
             display: block !important; 
             width: 100% !important;
@@ -50,7 +98,6 @@
             min-height: 0 !important;
           }
 
-          /* Ensure table headers are repeated if table spans pages */
           thead { display: table-header-group; }
           
           .shadow-sm, .shadow-lg, .shadow-xl, .shadow-2xl { box-shadow: none !important; }
@@ -59,7 +106,6 @@
           .bg-indigo-600 { background-color: #f3f4f6 !important; color: black !important; border: 1px solid black !important; }
           .text-white { color: black !important; }
           
-          /* Force text to be visible */
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
         
@@ -77,10 +123,8 @@
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-gray-50 text-gray-900 transition-colors duration-300">
     <div id="root"></div>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>
