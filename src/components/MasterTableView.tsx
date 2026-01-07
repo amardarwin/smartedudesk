@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Teacher, MasterTimetable, Day, ValidationIssue, Subject } from '../types';
+import { Teacher, MasterTimetable, Day, ValidationIssue, Subject, TimetableEntry } from '../types';
 import { DAYS, PERIODS } from '../constants';
 import { calculateConsecutiveStreak } from '../services/timetableLogic';
-import { AlertTriangle, X, UserCog, Lock, Flame, Trash2, RotateCcw, UserMinus, AlertCircle } from 'lucide-react';
+import { AlertTriangle, X, UserCog, Lock, Flame, Trash2, RotateCcw, UserMinus, AlertCircle, Info } from 'lucide-react';
 
 interface MasterTableViewProps {
   teachers: Teacher[];
@@ -160,9 +160,17 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
             <tr className="bg-black text-white font-black uppercase text-center border-b-4 border-black print:bg-gray-100 print:text-black print:border-b-2">
               <th className="p-4 border-r border-black text-left sticky left-0 bg-black z-30 w-56 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] print:p-2 print:bg-gray-100 print:w-40">Teacher Directory</th>
               <th className="p-4 border-r border-black w-24 print:p-2 print:w-16">Day</th>
-              {PERIODS.map(p => (
-                <th key={p} className="p-4 border-r border-black min-w-[110px] print:p-2 print:min-w-0">P{p}</th>
-              ))}
+              {PERIODS.map(p => {
+                const isColumnActive = editingCell?.period === p;
+                return (
+                  <th 
+                    key={p} 
+                    className={`p-4 border-r border-black min-w-[110px] print:p-2 print:min-w-0 transition-colors duration-300 ${isColumnActive ? 'bg-indigo-900' : ''}`}
+                  >
+                    P{p}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -228,6 +236,10 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
                           const isEditing = editingCell?.day === day && editingCell?.period === period && editingCell?.teacherId === teacher.id;
                           const isDimmed = focusClass !== 'ALL' && entry && entry.classId !== focusClass;
 
+                          // Highlighting Logic
+                          const isConflictColumn = editingCell?.day === day && editingCell?.period === period && editingCell?.teacherId !== teacher.id;
+                          const isStreakNeighbor = editingCell?.teacherId === teacher.id && editingCell?.day === day && Math.abs(editingCell?.period - period) === 1;
+
                           const streakIfAssigned = calculateConsecutiveStreak(teacher.id, day, period, timetable, []);
                           const showsWarning = !entry && streakIfAssigned >= 3;
 
@@ -238,12 +250,21 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
                               className={`p-1 border-r border-black min-w-[110px] h-16 transition-all relative text-center print:h-auto print:min-w-0 print:p-1
                                 ${entry ? 'bg-white' : 'bg-gray-50/30'}
                                 ${hasError ? 'bg-red-50' : ''}
-                                ${isEditing && isInchargeMode ? 'ring-2 ring-indigo-500 z-40 bg-white shadow-xl' : ''}
+                                ${isEditing && isInchargeMode ? 'ring-2 ring-indigo-500 z-40 bg-white shadow-xl scale-[1.05]' : ''}
+                                ${isConflictColumn ? 'bg-indigo-50/40' : ''}
+                                ${isStreakNeighbor ? 'ring-2 ring-indigo-300 ring-dashed bg-indigo-50/20' : ''}
                                 ${isDimmed ? 'opacity-20 grayscale' : 'opacity-100'}
                                 ${isInchargeMode ? 'cursor-pointer' : 'cursor-default'}
                                 ${showsWarning && !isEditing ? 'hover:bg-red-50' : ''}
                               `}
                             >
+                              {/* Conflict Warning Indicator in current column */}
+                              {isConflictColumn && entry && (
+                                <div className="absolute inset-0 bg-amber-400/10 pointer-events-none ring-1 ring-amber-300 ring-inset flex items-start justify-end p-0.5">
+                                  <Info size={10} className="text-amber-500 animate-pulse" title={`${entry.classId} is already busy here.`} />
+                                </div>
+                              )}
+
                               {isEditing && isInchargeMode ? (
                                 <div className="p-1 space-y-1">
                                   {showsWarning && (
@@ -262,13 +283,15 @@ const MasterTableView: React.FC<MasterTableViewProps> = ({
                                     }}
                                     onBlur={() => setEditingCell(null)}
                                   >
-                                    <option value="">Select...</option>
-                                    <option value="CLEAR" className="text-red-500 font-bold">CLEAR</option>
+                                    <option value="">Select Class...</option>
+                                    <option value="CLEAR" className="text-red-500 font-bold">CLEAR PERIOD</option>
                                     {availableClasses.map(c => {
                                        const teacherAsn = teacher.assignments.find(a => a.classId === c);
+                                       // Fix: Added cast to TimetableEntry[] to resolve 'unknown' property error
+                                       const isClassBusyHere = (Object.values(timetable[day]?.[period] || {}) as TimetableEntry[]).some(e => e.classId === c);
                                        return (
-                                         <option key={c} value={c}>
-                                           Class {c} {teacherAsn ? `(${teacherAsn.subject})` : ''}
+                                         <option key={c} value={c} className={isClassBusyHere ? 'text-gray-300 italic' : 'text-black font-bold'}>
+                                           Class {c} {isClassBusyHere ? '(OCCUPIED)' : teacherAsn ? `(${teacherAsn.subject})` : ''}
                                          </option>
                                        );
                                     })}
