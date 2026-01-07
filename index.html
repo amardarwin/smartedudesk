@@ -8,104 +8,76 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* Screen View */
         body { font-family: 'Inter', sans-serif; }
 
+        /* --- HEAVY DUTY PRINT ENGINE --- */
         @media print {
-            /* 1. Universal Settings */
+            /* Force Portrait for Slips/Classes and Landscape for Master */
             @page {
-                size: auto; /* Tusi print menu vich Portrait/Landscape chun sakde ho */
-                margin: 8mm !important;
-            }
-            
-            html, body {
-                width: 100% !important;
-                background: white !important;
-                color: #000 !important;
-                margin: 0 !important;
-                padding: 0 !important;
+                size: auto; /* Tusi manually print menu 'ch change kar sakde ho */
+                margin: 5mm !important;
             }
 
-            /* 2. Visibility Fix: Saaf Kaala Rang */
+            /* 1. Force Pure Black Visibility */
             * {
-                color: black !important;
-                border-color: black !important;
+                color: #000000 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                border-color: #000000 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
             }
 
-            /* 3. ONE PAGE PER ITEM (Classes & Slips) */
-            /* Har card (Class ya Teacher Slip) naye page te jayega */
-            .grid-cols-1 > div, 
-            [class*="teacher-slip"], 
-            [class*="class-card"],
-            .break-after-page {
+            /* 2. One Item Per Page (Classes & Slips) */
+            /* Assi har vaddi div nu target kar rahe haan */
+            main div[class*="grid-cols-1"] > div,
+            .teacher-slip-card,
+            section > div.bg-white {
                 page-break-after: always !important;
                 break-after: page !important;
                 display: block !important;
-                width: 100% !important;
                 border: 2px solid black !important;
-                padding: 20px !important;
                 margin-bottom: 0 !important;
+                padding: 15px !important;
             }
 
-            /* 4. TABLE STYLING (Bigger & Clear) */
-            table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                table-layout: fixed !important;
-                margin-top: 10px !important;
-            }
-
-            th, td {
+            /* 3. Font Size: Forcefully Large */
+            /* Table de andar da saara text vadda hoyega */
+            table th, table td {
+                font-size: 14pt !important; /* Teacher slips te Classes layi */
+                font-weight: 700 !important;
                 border: 1.5pt solid black !important;
-                padding: 6px !important;
-                line-height: 1.3 !important;
-                word-wrap: break-word !important;
+                padding: 5px !important;
                 text-align: center !important;
             }
 
-            /* 5. FONT SIZING */
-            /* Classes & Slips View (Large Font) */
-            .grid-cols-1 table th, 
-            .grid-cols-1 table td,
-            [class*="slip"] table td {
-                font-size: 15pt !important; /* Vadda size for visibility */
-                font-weight: 700 !important;
+            /* 4. Master Table Adjustment */
+            /* Master table bahut vaddi hundi hai, is layi usnu thoda compact rakhiya hai */
+            .overflow-x-auto table th, 
+            .overflow-x-auto table td {
+                font-size: 9pt !important;
+                padding: 2px !important;
             }
 
-            /* Master Table (Normal Size to fit page) */
-            th, td { font-size: 10.5pt !important; }
-
-            /* 6. TEACHERS LIST (4 per page - 2x2 Grid) */
-            .teachers-list-container {
+            /* 5. Teacher List: 4 Per Page */
+            .grid.grid-cols-1.md\:grid-cols-2 {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr !important;
-                gap: 20px !important;
-            }
-            
-            .teacher-card {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                height: 135mm !important; /* 4 cards on A4 */
-                border: 1.5pt solid black !important;
+                gap: 10px !important;
             }
 
-            /* 7. HIDE UI ELEMENTS */
-            nav, button, header, footer, .no-print, .settings-panel, [role="tablist"], aside {
+            /* 6. Clean UI: Hide Buttons/Nav */
+            nav, button, header, footer, .no-print, [role="tablist"], aside, .bg-blue-600 {
                 display: none !important;
             }
 
-            /* 8. WHITE SCREEN FIX */
-            #root, main, section, div {
+            /* 7. Layout Fix */
+            #root, main, section {
                 display: block !important;
-                overflow: visible !important;
-                position: static !important;
+                width: 100% !important;
             }
         }
-
-        /* Standard Screen Styles */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 
     <script type="importmap">
