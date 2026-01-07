@@ -1,5 +1,5 @@
 
-import { MasterTimetable, Teacher, Day, Substitution, Subject } from '../types';
+import { MasterTimetable, Teacher, Day, Substitution, Subject, TimetableEntry } from '../types';
 import { DAYS, PERIODS } from '../constants';
 
 /**
@@ -120,7 +120,8 @@ export const generateBaseTimetable = (
         const periodSet = (assigned < morningLimit) ? preferredPeriods : backupPeriods;
         
         for (const p of periodSet) {
-          const isClassBusy = Object.values(timetable[day][p]).some(e => e.classId === asn.classId);
+          // Fix: Added cast to TimetableEntry[] to resolve 'unknown' property access error
+          const isClassBusy = (Object.values(timetable[day][p]) as TimetableEntry[]).some(e => e.classId === asn.classId);
           const isTeacherBusy = !!timetable[day][p][teacher.id];
           
           if (!isClassBusy && !isTeacherBusy) {
@@ -140,7 +141,8 @@ export const generateBaseTimetable = (
         for (const day of DAYS) {
           if (assigned >= asn.periodsPerWeek) break;
           for (const p of PERIODS) {
-            const isClassBusy = Object.values(timetable[day][p]).some(e => e.classId === asn.classId);
+            // Fix: Added cast to TimetableEntry[] to resolve 'unknown' property access error
+            const isClassBusy = (Object.values(timetable[day][p]) as TimetableEntry[]).some(e => e.classId === asn.classId);
             const isTeacherBusy = !!timetable[day][p][teacher.id];
             if (!isClassBusy && !isTeacherBusy) {
               timetable[day][p][teacher.id] = {
