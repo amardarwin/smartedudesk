@@ -1,5 +1,5 @@
 
-import { MasterTimetable, Teacher, ValidationIssue, Day, Subject } from '../types';
+import { MasterTimetable, Teacher, ValidationIssue, Day, Subject, TimetableEntry } from '../types';
 import { DAYS, PERIODS } from '../constants';
 
 const CORE_SUBJECTS: Subject[] = ['Math', 'Science', 'English', 'SST'];
@@ -15,7 +15,8 @@ export const validateTimetable = (
 
   DAYS.forEach(day => {
     PERIODS.forEach(period => {
-      const entries = Object.entries(timetable[day]?.[period] || {});
+      // Fix: Added cast to [string, TimetableEntry][] to ensure correct type inference for entries
+      const entries = Object.entries(timetable[day]?.[period] || {}) as [string, TimetableEntry][];
       const classEntries = entries.map(([, entry]) => entry.classId);
 
       // 1. Conflict Check: Class double-booked
