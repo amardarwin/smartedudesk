@@ -22,20 +22,45 @@ export const generateSmartTimetable = async (
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const prompt = `
-      Act as a school administrator for GHS Deon Khera. Generate a master timetable for 5 classes (6th-10th) over 6 days (MON-SAT) with 8 periods daily.
+      Act as a school administrator for GHS Deon Khera. Generate a master timetable for classes 6th to 10th over 6 days (MON-SAT) with 8 periods daily.
+      Recess is strictly after Period 5.
       
-      Teachers & Workloads: ${JSON.stringify(teachers.map(t => ({ id: t.id, name: t.name, assignments: t.assignments })))}
+      Teachers & Assignments: ${JSON.stringify(teachers.map(t => ({ 
+        id: t.id, 
+        name: t.name, 
+        assignments: t.assignments,
+        qualifiedSubjects: t.subjects 
+      })))}
       
-      MANDATORY PDF CONSTRAINTS:
-      1. Core Subjects (Science, Math, English, SST) for senior classes (8th, 9th, 10th) MUST be in the first 5 periods.
-      2. If a teacher has more than 6 periods in a single class per week, 6 periods MUST be in the first 5 periods of the day, and the rest (periods 7 and 8) should be in the last 3 periods (6 to 8).
-      3. Grading subjects (Computer, Phy Edu, Art, W.L.) should mostly be assigned after 4 periods (periods 5-8).
-      4. Recess is after the 5th period.
-      5. Conflict Check: No teacher can be in two classes at once. No class can have two teachers at once.
-      6. Teacher ids must match exactly: ${teachers.map(t => t.id).join(', ')}.
+      STRICT PEDAGOGICAL CONSTRAINTS (MANDATORY):
       
-      Return ONLY a JSON object matching the MasterTimetable structure: Record<Day, Record<number, Record<TeacherId, {classId, subject, teacherId}>>>. 
-      Do not include any text before or after the JSON.
+      1. WORKLOAD BALANCE:
+         - NO teacher should have more than 3 continuous teaching periods.
+         - NO teacher should have more than 2 continuous free (vacant) periods. (STRICT)
+         - NO teacher should have all periods only before recess. (STRICT)
+         - NO teacher should remain completely vacant after recess. (STRICT)
+         - NO teacher should teach all 3 periods after recess (6, 7, 8) continuously.
+         - Teachers MUST have some periods before recess (1-5) AND some after recess (6-8).
+
+      2. SCIENCE SUBJECT SPECIAL RULES (STRICT):
+         - 10th Class Science: Fix 3rd Period on FRIDAY.
+         - 9th Class Science: Fix 2nd Period on TUESDAY.
+         - 8th Class Science: Fix 2nd Period on WEDNESDAY.
+         - 7th Class Science: Out of 8 weekly periods, at least 2 MUST be assigned before recess (1-5).
+         - 9th & 10th Class Science: Out of 7 weekly periods, exactly 1 MUST be assigned at 8th Period on different days for each class.
+         - Science for 8th, 9th, 10th should mostly be BEFORE recess, but continuity is allowed where helpful.
+
+      3. GRADING SUBJECTS (Phy Edu, Computer, Art, W.L., Agri):
+         - These should be broken across days. 
+         - Example: If Phy Edu has 6 periods, assign 3 on Sat (P7) and 3 on another day (P8).
+         - Continuity is NOT mandatory for grading subjects. Focus these on Periods 7 and 8.
+
+      4. CONFLICTS:
+         - No teacher in two classes at once.
+         - No class with two teachers at once.
+         - Teacher IDs must match: ${teachers.map(t => t.id).join(', ')}.
+
+      Return ONLY a JSON object matching the MasterTimetable structure: Record<Day, Record<number, Record<TeacherId, {classId, subject, teacherId}>>>.
     `;
 
     const response = await ai.models.generateContent({
