@@ -10,12 +10,10 @@ export const validateTimetable = (
 ): ValidationIssue[] => {
   const issues: ValidationIssue[] = [];
   
-  // Deriving list of classes from teacher assignments to ensure we check all relevant groups
   const classesToCheck = Array.from(new Set(teachers.flatMap(t => t.assignments.map(a => a.classId))));
 
   DAYS.forEach(day => {
     PERIODS.forEach(period => {
-      // Fix: Added cast to [string, TimetableEntry][] to ensure correct type inference for entries
       const entries = Object.entries(timetable[day]?.[period] || {}) as [string, TimetableEntry][];
       const classEntries = entries.map(([, entry]) => entry.classId);
 
@@ -37,8 +35,7 @@ export const validateTimetable = (
         }
       });
 
-      // 2. NEW RULE: Vacant Period Check
-      // Check if any class is missing a teacher for this period
+      // 2. Vacant Period Check
       classesToCheck.forEach(cId => {
         if (!classEntries.includes(cId)) {
           issues.push({
@@ -49,42 +46,95 @@ export const validateTimetable = (
           });
         }
       });
-
-      // 3. Rule: Core subjects in morning (1-5) for senior classes (8th-10th)
-      entries.forEach(([tId, entry]) => {
-        if (['8th', '9th', '10th'].includes(entry.classId) && 
-            CORE_SUBJECTS.includes(entry.subject) && 
-            period > 5) {
-          issues.push({
-            id: `rule-core-${day}-${period}-${tId}`,
-            type: 'WARNING',
-            message: `${entry.subject} scheduled for Class ${entry.classId} after recess (Period ${period}). Core subjects are preferred in morning.`,
-            location: { day, period, classId: entry.classId, teacherId: tId }
-          });
-        }
-      });
     });
 
-    // 4. Rule: Max 3 consecutive periods for a teacher
+    // 3. Teacher Load & Continuous Streak Rules
     teachers.forEach(teacher => {
-      let streak = 0;
+      let teachStreak = 0;
+      let freeStreak = 0;
+      let periodsBeforeRecess = 0;
+      let periodsAfterRecess = 0;
+
       PERIODS.forEach(period => {
-        if (timetable[day]?.[period]?.[teacher.id]) {
-          streak++;
-          if (streak > 3) {
+        const isBusy = !!timetable[day]?.[period]?.[teacher.id];
+        
+        if (isBusy) {
+          teachStreak++;
+          freeStreak = 0;
+          if (period <= 5) periodsBeforeRecess++;
+          else periodsAfterRecess++;
+
+          if (teachStreak > 3) {
             issues.push({
-              id: `streak-${day}-${period}-${teacher.id}`,
+              id: `streak-teach-${day}-${period}-${teacher.id}`,
               type: 'WARNING',
-              message: `${teacher.name} has ${streak} consecutive periods. Max 3 is recommended.`,
+              message: `${teacher.name} has ${teachStreak} consecutive teaching periods. Max 3 allowed.`,
+              location: { day, period, teacherId: teacher.id }
+            });
+          }
+          
+          if (period > 5 && teachStreak >= 3 && period === 8) {
+            issues.push({
+              id: `streak-afternoon-${day}-${period}-${teacher.id}`,
+              type: 'ERROR',
+              message: `${teacher.name} teaching all 3 periods after recess continuously. Prohibited.`,
               location: { day, period, teacherId: teacher.id }
             });
           }
         } else {
-          streak = 0;
+          teachStreak = 0;
+          freeStreak++;
+
+          if (freeStreak > 2) {
+            issues.push({
+              id: `streak-free-${day}-${period}-${teacher.id}`,
+              type: 'ERROR',
+              message: `${teacher.name} has ${freeStreak} consecutive free periods. Max 2 allowed.`,
+              location: { day, period, teacherId: teacher.id }
+            });
+          }
         }
       });
+
+      // Daily Balance Checks
+      if (periodsBeforeRecess > 0 && periodsAfterRecess === 0) {
+        issues.push({
+          id: `balance-morning-only-${day}-${teacher.id}`,
+          type: 'ERROR',
+          message: `${teacher.name} is only busy before recess. Must have balanced load.`,
+          location: { day, period: 1, teacherId: teacher.id }
+        });
+      }
+      
+      const isWorkingDay = PERIODS.some(p => !!timetable[day]?.[p]?.[teacher.id]);
+      const hasAfterRecessLoad = [6, 7, 8].some(p => !!timetable[day]?.[p]?.[teacher.id]);
+      if (isWorkingDay && !hasAfterRecessLoad) {
+        issues.push({
+          id: `vacant-post-recess-${day}-${teacher.id}`,
+          type: 'ERROR',
+          message: `${teacher.name} is completely vacant after recess. Prohibited.`,
+          location: { day, period: 6, teacherId: teacher.id }
+        });
+      }
     });
   });
+
+  // 4. Fixed Science Spot Validation
+  const checkFixed = (day: Day, period: number, classId: string, subject: string) => {
+    const entryFound = Object.values(timetable[day]?.[period] || {}).some(e => e.classId === classId && e.subject === subject);
+    if (!entryFound) {
+      issues.push({
+        id: `fixed-missing-${day}-${period}-${classId}`,
+        type: 'ERROR',
+        message: `Strict Requirement: ${classId} Science must be at Period ${period} on ${day}.`,
+        location: { day, period, classId }
+      });
+    }
+  };
+
+  checkFixed(Day.FRI, 3, '10th', 'Science');
+  checkFixed(Day.TUE, 2, '9th', 'Science');
+  checkFixed(Day.WED, 2, '8th', 'Science');
 
   return issues;
 };
