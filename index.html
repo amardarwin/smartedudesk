@@ -8,78 +8,68 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Screen View */
         body { font-family: 'Inter', sans-serif; }
 
-        /* --- HEAVY DUTY PRINT ENGINE --- */
         @media print {
-            /* Force Portrait for Slips/Classes and Landscape for Master */
-            @page {
-                size: auto; /* Tusi manually print menu 'ch change kar sakde ho */
-                margin: 5mm !important;
-            }
-
-            /* 1. Force Pure Black Visibility */
+            /* 1. FORCE PURE BLACK FOR EVERYTHING */
             * {
                 color: #000000 !important;
+                border-color: #000000 !important;
+                background-color: transparent !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-                border-color: #000000 !important;
                 opacity: 1 !important;
-                visibility: visible !important;
             }
 
-            /* 2. One Item Per Page (Classes & Slips) */
-            /* Assi har vaddi div nu target kar rahe haan */
-            main div[class*="grid-cols-1"] > div,
-            .teacher-slip-card,
-            section > div.bg-white {
+            @page { margin: 8mm !important; }
+
+            /* 2. MASTER TABLE: Landscape Orientation */
+            /* If the URL or view contains Master Table, it fits landscape */
+            .overflow-x-auto table {
+                width: 100% !important;
+                font-size: 9pt !important; /* Slightly smaller to fit all periods */
+            }
+
+            /* 3. CLASSES & SLIPS: One Per Page + Big Font */
+            /* Targetting cards for Class 6th to 10th and individual slips */
+            main .grid-cols-1 > div,
+            [class*="slip"], [class*="class-card"] {
                 page-break-after: always !important;
                 break-after: page !important;
+                border: 2.5pt solid black !important;
+                padding: 25px !important;
                 display: block !important;
-                border: 2px solid black !important;
-                margin-bottom: 0 !important;
-                padding: 15px !important;
             }
 
-            /* 3. Font Size: Forcefully Large */
-            /* Table de andar da saara text vadda hoyega */
-            table th, table td {
-                font-size: 14pt !important; /* Teacher slips te Classes layi */
-                font-weight: 700 !important;
-                border: 1.5pt solid black !important;
-                padding: 5px !important;
-                text-align: center !important;
+            .grid-cols-1 table th, 
+            .grid-cols-1 table td {
+                font-size: 16pt !important; /* Large bold font for readability */
+                font-weight: 800 !important;
+                padding: 8px !important;
             }
 
-            /* 4. Master Table Adjustment */
-            /* Master table bahut vaddi hundi hai, is layi usnu thoda compact rakhiya hai */
-            .overflow-x-auto table th, 
-            .overflow-x-auto table td {
-                font-size: 9pt !important;
-                padding: 2px !important;
-            }
-
-            /* 5. Teacher List: 4 Per Page */
-            .grid.grid-cols-1.md\:grid-cols-2 {
+            /* 4. TEACHERS LIST: 4 per page (2x2 Grid) */
+            /* AmaRjeeR Singh, Miss Raj Kumari, etc. in 2 columns */
+            main .grid.grid-cols-1.md\:grid-cols-2 {
                 display: grid !important;
                 grid-template-columns: 1fr 1fr !important;
-                gap: 10px !important;
+                gap: 15px !important;
             }
 
-            /* 6. Clean UI: Hide Buttons/Nav */
-            nav, button, header, footer, .no-print, [role="tablist"], aside, .bg-blue-600 {
+            [class*="teacher-card"], .bg-white.rounded-xl.border {
+                page-break-inside: avoid !important;
+                height: 138mm !important;
+                border: 2pt solid black !important;
+            }
+
+            /* 5. HIDE WEB UI */
+            nav, button, .no-print, header, footer, [role="tablist"] {
                 display: none !important;
             }
-
-            /* 7. Layout Fix */
-            #root, main, section {
-                display: block !important;
-                width: 100% !important;
-            }
+            
+            #root, main { display: block !important; }
         }
     </style>
-
     <script type="importmap">
     {
       "imports": {
